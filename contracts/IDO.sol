@@ -129,8 +129,11 @@ contract IDO is Ownable, ReentrancyGuard {
             depositInfos[_address].amount > 0 &&
             depositInfos[_address].redeem == false
         ) {
-            uint256 tokenPrice = getCurrentPrice();
-            return depositInfos[_address].amount.mul(1e18).div(tokenPrice);
+            uint256 redeemableTokens = depositInfos[_address]
+                .amount
+                .mul(totalSupply)
+                .div(totalDeposit);
+            return redeemableTokens;
         } else {
             return 0;
         }
