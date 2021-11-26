@@ -1,15 +1,15 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.6.12;
+pragma solidity 0.8.10;
 
-import "@openzeppelin/contracts/token/ERC20/SafeERC20.sol";
-import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
-import "@openzeppelin/contracts/math/SafeMath.sol";
+import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
+import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/utils/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
+import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract IDO is Ownable, ReentrancyGuard {
     using SafeMath for uint256;
-    using SafeERC20 for IERC20;
+    using SafeERC20 for IERC20Metadata;
 
     // Info of each investor
     struct DepositInfo {
@@ -23,7 +23,7 @@ contract IDO is Ownable, ReentrancyGuard {
     uint256 public endSaleAt;
     // Start grace time
     uint256 public startGraceAt;
-    // End sale time
+    // End grace time
     uint256 public endGraceAt;
     // Start redeem time
     uint256 public startRedeemAt;
@@ -39,9 +39,9 @@ contract IDO is Ownable, ReentrancyGuard {
     uint256 public numberParticipants;
 
     // Token for sale
-    IERC20 public token;
+    IERC20Metadata public token;
     // Token used to buy
-    IERC20 public currency;
+    IERC20Metadata public currency;
 
     // Info of each investor that buy tokens.
     mapping(address => DepositInfo) public depositInfos;
@@ -63,7 +63,7 @@ contract IDO is Ownable, ReentrancyGuard {
         uint256 _endRedeemAt,
         uint256 _totalSupply,
         uint256 _minDeposit
-    ) public {
+    ) {
         require(_token != address(0), "Invalid token address");
         require(_currency != address(0), "Invalid currency address");
         require(_startSaleAt < _endSaleAt, "_startSaleAt must be < _endSaleAt");
@@ -86,8 +86,8 @@ contract IDO is Ownable, ReentrancyGuard {
         require(_totalSupply > 0, "_totalSupply must be > 0");
         require(_minDeposit > 0, "_minDeposit must be > 0");
 
-        token = IERC20(_token);
-        currency = IERC20(_currency);
+        token = IERC20Metadata(_token);
+        currency = IERC20Metadata(_currency);
         startSaleAt = _startSaleAt;
         endSaleAt = _endSaleAt;
         startGraceAt = _startGraceAt;
@@ -99,7 +99,8 @@ contract IDO is Ownable, ReentrancyGuard {
     }
 
     function getCurrentPrice() public view returns (uint256) {
-        return totalDeposit.mul(1e18).div(totalSupply);
+        uint8 tokenDecimals = token.decimals();
+        return totalDeposit.mul(10**tokenDecimals).div(totalSupply);
     }
 
     // User's first deposit required amount >= minDeposit
