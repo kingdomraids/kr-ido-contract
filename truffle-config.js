@@ -32,7 +32,7 @@ module.exports = {
   // Configure your compilers
   compilers: {
     solc: {
-      version: "v0.6.12+commit.27d51765"
+      version: "v0.8.10+commit.fc410830"
     }
   },
   plugins: [
