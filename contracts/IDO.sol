@@ -2,13 +2,11 @@
 pragma solidity 0.8.10;
 
 import "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
-import "@openzeppelin/contracts/utils/math/SafeMath.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import "@openzeppelin/contracts/security/ReentrancyGuard.sol";
 import "@openzeppelin/contracts/token/ERC20/extensions/IERC20Metadata.sol";
 
 contract IDO is Ownable, ReentrancyGuard {
-    using SafeMath for uint256;
     using SafeERC20 for IERC20Metadata;
 
     // Info of each investor
@@ -100,7 +98,7 @@ contract IDO is Ownable, ReentrancyGuard {
 
     function getCurrentPrice() public view returns (uint256) {
         uint8 tokenDecimals = token.decimals();
-        return totalDeposit.mul(10**tokenDecimals).div(totalSupply);
+        return (totalDeposit * (10**tokenDecimals)) / totalSupply;
     }
 
     // User's first deposit required amount >= minDeposit
@@ -114,11 +112,11 @@ contract IDO is Ownable, ReentrancyGuard {
             require(_amount > 0, "Amount must be > 0");
         }
         currency.safeTransferFrom(msg.sender, address(this), _amount);
-        totalDeposit = totalDeposit.add(_amount);
+        totalDeposit = totalDeposit + _amount;
         if (userTotalDeposit == 0) {
-            numberParticipants = numberParticipants.add(1);
+            numberParticipants = numberParticipants + 1;
         }
-        userTotalDeposit = userTotalDeposit.add(_amount);
+        userTotalDeposit = userTotalDeposit + _amount;
         userDeposit.amount = userTotalDeposit;
         emit Deposit(msg.sender, _amount);
     }
@@ -130,10 +128,8 @@ contract IDO is Ownable, ReentrancyGuard {
             depositInfos[_address].amount > 0 &&
             depositInfos[_address].redeem == false
         ) {
-            uint256 redeemableTokens = depositInfos[_address]
-                .amount
-                .mul(totalSupply)
-                .div(totalDeposit);
+            uint256 redeemableTokens = (depositInfos[_address].amount *
+                totalSupply) / totalDeposit;
             return redeemableTokens;
         } else {
             return 0;
@@ -146,8 +142,8 @@ contract IDO is Ownable, ReentrancyGuard {
         uint256 userTotalDeposit = userDeposit.amount;
         require(userTotalDeposit > 0, "Invalid action");
         userDeposit.amount = 0;
-        totalDeposit = totalDeposit.sub(userTotalDeposit);
-        numberParticipants = numberParticipants.sub(1);
+        totalDeposit = totalDeposit - userTotalDeposit;
+        numberParticipants = numberParticipants - 1;
         currency.safeTransfer(msg.sender, userTotalDeposit);
         emit Withdraw(msg.sender, userTotalDeposit);
     }
