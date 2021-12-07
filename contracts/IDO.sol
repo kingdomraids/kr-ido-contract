@@ -96,7 +96,7 @@ contract IDO is Ownable, ReentrancyGuard {
         minDeposit = _minDeposit;
     }
 
-    function getCurrentPrice() public view returns (uint256) {
+    function getCurrentPrice() external view returns (uint256) {
         uint8 tokenDecimals = token.decimals();
         return (totalDeposit * (10**tokenDecimals)) / totalSupply;
     }
@@ -126,7 +126,7 @@ contract IDO is Ownable, ReentrancyGuard {
         if (
             totalDeposit > 0 &&
             depositInfos[_address].amount > 0 &&
-            depositInfos[_address].redeem == false
+            !depositInfos[_address].redeem
         ) {
             uint256 redeemableTokens = (depositInfos[_address].amount *
                 totalSupply) / totalDeposit;
